@@ -25,6 +25,8 @@ if ((Get-Item $ReleaseFolder -ErrorAction SilentlyContinue) -ne $null)
 	Remove-Item $ReleaseFolder -Recurse
 }
 
+####### DO THE SLN BUILD PART #############
+
 # Go get nuget.exe if we don't hae it
 $NuGet = "$BuildFolder\nuget.exe"
 $FileExists = Test-Path $NuGet 
@@ -64,6 +66,8 @@ if (-not $?)
 	throw "The MSBuild process returned an error code."
 }
 
+####### DO THE UMBRACO PACKAGE BUILD #############
+
 # Set the version number in createdPackages.config
 $CreatedPackagesConfig = Join-Path -Path $BuildFolder -ChildPath "createdPackages.config"
 $CreatedPackagesConfigXML = [xml](Get-Content $CreatedPackagesConfig)
@@ -73,8 +77,8 @@ $CreatedPackagesConfigXML.Save($CreatedPackagesConfig)
 #copy the orig manifest to temp location to be updated to be used for the package
 $PackageManifest = Join-Path -Path $BuildFolder -ChildPath "packageManifest.xml"
 New-Item -ItemType Directory -Path $TempFolder
-Copy-Item $PackageManifest "$TempFolder\packageManifest.xml"
-$PackageManifest = (Join-Path -Path $TempFolder -ChildPath "packageManifest.xml")
+Copy-Item $PackageManifest "$TempFolder\package.xml"
+$PackageManifest = (Join-Path -Path $TempFolder -ChildPath "package.xml")
 
 # Set the data in packageManifest.config
 $PackageManifestXML = [xml](Get-Content $PackageManifest)

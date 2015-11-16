@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
@@ -219,7 +220,22 @@ namespace Articulate
             foreach (var post in posts)
             {
                 //check if one exists
-                var postNode = allPostNodes.FirstOrDefault(x => x.GetValue<string>("importId") == post.Id);
+
+
+                IContent postNode;
+
+                //Use post.id if it's there
+                if (!string.IsNullOrWhiteSpace(post.Id))
+                {
+                    postNode = allPostNodes.FirstOrDefault(x => x.GetValue<string>("importId") == post.Id);                    
+                }
+                else 
+                {
+                    //Use the "slug" (post name) if post.id is not there
+                    postNode = allPostNodes
+                        .FirstOrDefault(x => x.GetValue<string>("umbracoUrlName") != null
+                                             && x.GetValue<string>("umbracoUrlName").InvariantStartsWith(post.Name.Content));
+                }
                 
                 //it exists and we don't wanna overwrite, skip it
                 if (!overwrite && postNode != null) continue;
@@ -241,6 +257,10 @@ namespace Articulate
                 postNode.SetValue("importId", post.Id);
 
                 var content = post.Content.Content;
+
+                if (post.Content.ContentType == BlogMLContentType.Base64)
+                    content = Encoding.UTF8.GetString(Convert.FromBase64String(post.Content.Content));
+
                 if (!regexMatch.IsNullOrWhiteSpace() && !regexReplace.IsNullOrWhiteSpace())
                 {
                     //run the replacement
@@ -333,6 +353,8 @@ namespace Articulate
             //since this blobml serializer doesn't support tags (can't find one that does) we need to manually take care of that
             var xmlPost = xdoc.Descendants(XName.Get("post", xdoc.Root.Name.NamespaceName))
                 .SingleOrDefault(x => ((string)x.Attribute("id")) == post.Id);
+
+            if (xmlPost == null) return;
 
             var tags = xmlPost.Descendants(XName.Get("tag", xdoc.Root.Name.NamespaceName)).Select(x => (string)x.Attribute("ref")).ToArray();
             postNode.SetTags("tags", tags, true, "ArticulateTags");
