@@ -27,7 +27,7 @@ namespace Articulate
         {
             foreach (var publishedContent in itemsForRoute)
             {
-                var url = publishedContent.Url;
+                var url = publishedContent.UrlWithDomain();
                 //if there is a double slash, it will have a domain
                 if (url.Contains("//"))
                 {
