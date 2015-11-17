@@ -74,7 +74,7 @@ namespace Articulate
 
             var tag = requestContext.RouteData.Values["tag"] == null ? null : requestContext.RouteData.Values["tag"].ToString();
             var actionName = requestContext.RouteData.GetRequiredString("action");
-            var rootUrl = baseContent.Url;
+            var rootUrl = baseContent.UrlWithDomain().EnsureEndsWith('/');
             var urlName = actionName.InvariantEquals("tags") ? urlAndPageName.TagsUrlName : urlAndPageName.CategoriesUrlName;
             var pageName = actionName.InvariantEquals("tags") ? urlAndPageName.TagsPageName : urlAndPageName.CategoriesPageName;
 
