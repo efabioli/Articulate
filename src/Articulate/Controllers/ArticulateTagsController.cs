@@ -10,6 +10,7 @@ using System.Web.Routing;
 using Argotic.Common;
 using Articulate.Models;
 using Umbraco.Core;
+using Umbraco.Core.Models;
 using Umbraco.Web;
 using Umbraco.Web.Models;
 using Umbraco.Web.Mvc;
@@ -116,11 +117,6 @@ namespace Articulate.Controllers
                     baseUrl);
             }
 
-            if (contentByTag == null)
-            {
-                return new HttpNotFoundResult();
-            }
-
             if (p != null && p.Value == 1)
             {
                 return new RedirectToUmbracoPageResult(model.Content, UmbracoContext);
@@ -136,7 +132,7 @@ namespace Articulate.Controllers
             // would work? The children count could be cached. I'd rather not put blog posts under 'month' nodes
             // just for the sake of performance. Hrm.... Examine possibly too.
 
-            var totalPosts = contentByTag.PostCount;
+            var totalPosts = contentByTag == null ? 0 : contentByTag.PostCount;
             var pageSize = rootPageModel.PageSize;
             var totalPages = totalPosts == 0 ? 1 : Convert.ToInt32(Math.Ceiling((double)totalPosts / pageSize));
 
@@ -153,7 +149,7 @@ namespace Articulate.Controllers
                 totalPages > p ? model.Content.Url.EnsureEndsWith('?') + "p=" + (p + 1) : null,
                 p > 2 ? model.Content.Url.EnsureEndsWith('?') + "p=" + (p - 1) : p > 1 ? model.Content.Url : null);
 
-            var listModel = new ListModel(tagPage, contentByTag.Posts, pager);
+            var listModel = new ListModel(tagPage, contentByTag == null ? Enumerable.Empty<PostModel>() : contentByTag.Posts, pager);
 
             return View(PathHelper.GetThemeViewPath(listModel, "List"), listModel);
         }
